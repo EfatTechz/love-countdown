@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For You 💖</title>
+<style>
+:root{
+  --bg1:#ffd6e0; --bg2:#ffe6f0; --card:#ffffff; --accent:#ff6fa3; --text:#333;
+}
+body.dark{
+  --bg1:#1e1f2b; --bg2:#2a2c3d; --card:#2f3145; --accent:#ff8fb8; --text:#f1f1f1;
+}
+body{
+  margin:0; font-family: "Segoe UI", system-ui, Arial;
+  background: linear-gradient(120deg,var(--bg1),var(--bg2));
+  color:var(--text); text-align:center; overflow-x:hidden;
+}
+header{padding:20px}
+h1{margin:0; color:var(--accent); font-size:28px}
+p{opacity:.9}
+.container{max-width:900px; margin:auto}
+.controls{display:flex; justify-content:center; gap:10px; margin:10px}
+button{
+  padding:10px 14px; border:none; border-radius:14px; cursor:pointer;
+  background:var(--accent); color:#fff; box-shadow:0 6px 14px rgba(0,0,0,.1);
+  transition:.2s transform, .2s opacity;
+}
+button:hover{transform:translateY(-2px)}
+button.locked{background:#9aa0a6; cursor:not-allowed; opacity:.7}
+.grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(90px,1fr)); gap:8px; padding:10px}
+.card{
+  margin:16px auto; padding:16px; max-width:520px;
+  background:var(--card); border-radius:20px; display:none;
+  box-shadow:0 10px 24px rgba(0,0,0,.15);
+  animation:pop .3s ease;
+}
+@keyframes pop{from{transform:scale(.9); opacity:0} to{transform:scale(1); opacity:1}}
+.pet{
+  position:fixed; bottom:20px; right:20px; font-size:42px; cursor:pointer;
+  animation:float 3s ease-in-out infinite;
+}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.heart{
+  position:fixed; font-size:20px; animation:rise 3s linear forwards;
+}
+@keyframes rise{from{transform:translateY(0); opacity:1}to{transform:translateY(-120px); opacity:0}}
+.footer{opacity:.7; font-size:14px; margin:20px}
+.progress{margin-top:8px}
+.toggle{background:#00000022}
+</style>
+</head>
+<body>
+<header class="container">
+  <h1>💖 Countdown to May 23 💖</h1>
+  <p id="info"></p>
+  <div class="controls">
+    <button class="toggle" onclick="toggleTheme()">🌙/☀️</button>
+  </div>
+</header>
+
+<div class="container">
+  <div id="days" class="grid"></div>
+  <div id="message" class="card"></div>
+  <div class="progress" id="progress"></div>
+</div>
+
+<div class="pet" onclick="petTalk()">🐱</div>
+<div class="footer">Tap the kitty if you miss me 🐾</div>
+
+<script>
+const startDate = new Date("2026-03-26");
+const endDate = new Date("2026-05-22");
+const totalDays = Math.ceil((endDate - startDate)/(1000*60*60*24)) + 2;
+
+const messages = [
+"Day 0: I’ll miss you my jaan😭.. Shudhu tmr jonno banano ei website💘. Kosto payo na ami chole gele. I'm always withh you by this website☺. pasher cat ta ke tap korte paro amake miss korle😚. everything here is me🥰. only Yourss💖💖.", 
+"Day 1: Thinking of your smile all day 😊.. Kivabe je tmke chara asi ami🙂.Sure thako tmk onk miss kortesi.Shokal e to tao ami asi tmr sathe ktha bolar jnno ajk💖.But bikal theke ar thakbo naa💔. Tmi valo vabe thakio jaan.Tmke onk miss korbo ami .onk valobashi tomake😭. jotogula msg lekhbo ei website e, shob amr mon diye lekhtesi . jni na tmr kmn lagbe amr eisob kaj😅But mone korlam tmi mone hoy lonely feel korba , tai ei website ta banailam. Accha klk abar msg dekhio. Tmk onk miss kortesi amiii😭😭😭Ei EMON shudhui apnar madammm❤",
+"Day 2: Hope you had a sweet day 🌸.. day 2 ajk. Ami asi clg e Alhamdulillah. Asha kori tmi vlo aso❤. valo kemne thakba na?ami tmk eto valobashi je...😚kolijaaa tmi amr. onk miss korte tmk jaan. valo moto thakio . day 2 to cholei aslo, aste aste shob din chole jbe. ami jni na website ta thik moto kaj kortese nki na. But hope so kaj kortese🙃, amr ktha mone pore apnar?? mone porle cat ta te chap diyen. onk msg rakhsi amr madam er jnno. love youuuuuu❤😭.accha jaan, klk abar asio msg dekhar jnno.tmk onk miss kori ami. ami asi alhamdulillah.Apni valo thakien madam❤ MISSING YOU SOOO MUCHHH😭",
+"Day 3: Valobashi tore SUHASHINI... ",
+"Day 4: Sending you a virtual hug 🤗..Day 4 ajk. HUG ta niyo amar😭😭...",
+"Day 5: You’re in my heart always 💖..Sweet dreams amar jaan 🌙..",
+"Day 6: Just imagining your laugh 😄..Day 6 ajk. Ami ekhono tmr smile er chhobi mone rekhe shuru korlam amar din 😍. Shudhu tmr jnno ami ei website banaisi 💖. Jodi lonely feel koro, cat tap korio 😺. Ami tmk boro mon theke miss kortesi. Always thinking of you, my jaan 🥰",
+"Day 7: One week gone… I miss you more 💕..Hi my love 💕. Day 7 ajk. Ami ajk clg theke free, but amar mon shudhu tmr kotha bhabee 😭. Tmi kmn aso? Ami chai tmi hamesha happy r safe thako. Amar valobasha tmr jnno limitless 😘. Cat te tap korio jodi amar kotha mone poray 😺💖",
+"Day 8: Hope something made you smile today 🙂..Day 8 ajk..Ami chai tmi smile kore thakoooo 😍. Ami tmk onk miss kortesi 💔. Website ta chhoto, kintu amar mon er boro part tmr jnno ekhane rakhlam 🥰.",
+"Day 9: Counting days until I’m back 😘..Hey beautiful 😘.. Day 9 ajk.  Tmr jnno amar valobasha grow kortese 😍. Cat tap korio jodi miss koro amake 😺💖. Ami tmr chhoto chhoto khushi er jnno always kisu korte chai 🥰.",
+"Day 10: You’re the cutest thing I think about 💖Day 10 ajk. Ami chai tmi bhalo thako. Amar din ta shudhu tmr smile bhabte bhabte chole 😭. Ami shob shomoy tmr kotha mone koriiiii💘. Cat tap korio jodi amar kotha miss koro 😚💖. Always yours, EMON 🥰.",
+"Day 11: Wish I could be with you right now 😌..Eto msg type kora is hard...Day 11 ajk. ami tmr kotha bhabi. Ami chai tmi hamesha happy thakio 💕. Amar valobasha tmr jnno infinite 😍.bujhsoo.. tmi shudhu amrr, ar karo naa. amio shudhui tmrr .LOVE YOUU mera bacchaa😭",
+"Day 12: Remember to smile 🙂...Day 12 ajk. Ami ajk tmr smile r vabi vabi raat ta sesh kortesi 😅. Ami chai tmi lonely feel koro na 💔. Ami tmk onk miss kortesi 😭. Amar shob mon er kotha ei website e rakhlam 🥰.",
+"Day 13: Sending love and warm hugs 💕..take my hugsss...Day 13 ajk. Ami tmr sathe kotha bolte chaiiiiiiiiiiiiiiiiiiiiiiiiii 😚.. Cat te tap korio jodi miss koro amake 😺💖. Love you sooo much, always EMON 🥰.",
+"Day 14: Two weeks already… miss you 😘....jaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannn..tmr kotha bhabte bhalo lage 😅. Ami chai tmi happy r safe thakio 💖. Ami tmk onk miss kortesi 😭. Tap the cat for me 😺💘.",
+"Day 15: Just thinking aboutu.only you .youuuuuuu. Ami chai tmi lonely feel koro na... Amar valobasha tmr jnno endless 😘.choto msg dilam,dont mind plss.",
+"Day 16: You make my heart happy 💖..Day 16 ajk... Ami ajk tmr sathe kotha bolte chaiiiiiiiiii 😭. Ami chai tmi always happy r safe thakio 🥰",
+"Day 17: Hope your day is as amazing as you 🌷...my jann ..my love 😘.. Day 17 ajk....  tmi lonely feel koro na babuuuuuu. Ami tmk onk miss kortesi 💔. Always yours, EMON 🥰.",
+"Day 18: Miss your laugh 😄💖..veryyyy muchhhhhhhh.. love youuu,ummahhhhhhhhhhhhhhhhhhhhhhhhhhhh. tap the cat tap the catttttt.. i feel mad. love youuuuuuuuuuuuuuuuuuuuuuuuuuu",
+"Day 19: Day 19 ajk.. Ami chai tmi smile kore rakhio amar jonno 😘. Amar mon shudhu tmr kotha bhabte bhabte chole. Love you my jaan 💕",
+"Day 20: Day 20 ajk.. Tmr kotha chara din sesh hoi na. Ami tmk miss kortesi onk 😭. Always thinking of you 💖",
+"Day 21: Day 21 ajk.. Amar shob khushi tmr sathe share korte chai 😍. Hope tmi always bhalo thakio 💕",
+"Day 22: Day 22 ajk.. Amar mon tmr kotha bhabte bhabte full bhoraaaaaa 😘. Cat tap korio amake mone korte 😺💖",
+"Day 23: Day 23 ajk.. ami! 😍 Ami tmr onk miss kortesi 💕",
+"Day 24: Day 24 ajk.. Sending tmk virtual kisses 😘💖. Smile always jaan",
+"Day 25: Day 25 ajk.. Just check in.. Amar kotha bhabio.. ar karo na 😍. Miss you so much 💕",
+"Day 26: Day 26 ajk.. Tmr sathe abar kotha hobe soon 😘. Always yours 💖",
+"Day 27: Day 27 ajk.. Stay happy, smile for me 💕. Ami tmk onk miss kortesi 😍",
+"Day 28: Day 28 ajk.. Wish I could hug you 😘. Sending love 💖",
+"Day 29: Day 29 ajk.. Thinking of tmr cute face 😍. Miss you 💕",
+"Day 30: Day 30 ajk.. Halfway there! Smile always 😘. Love you 💖",
+"Day 31: Day 31 ajk.. You’re always in my heart 💕. Miss you 😍",
+"Day 32: Day 32 ajk.. Can’t wait to see you again 😘. Love you 💖",
+"Day 33: Day 33 ajk.. Hope tmr day is lovely 🌸. Miss you 💕",
+"Day 34: Day 34 ajk.. Sending tmk love 💖. Smile always 😘",
+"Day 35: Day 35 ajk.. Miss you more than words 😍. Love you 💕",
+"Day 36: Day 36 ajk.. Remember our laughs 😘. Always thinking of you 💖",
+"Day 37: Day 37 ajk.. Life is sweeter with you 💕. Miss you 😍",
+"Day 38: Day 38 ajk.. Thinking about our hug 🤗. Love you 💖",
+"Day 39: Day 39 ajk.. Feel my love today 😘. Miss you 💕",
+"Day 40: Day 40 ajk.. Smile for me always 😍. Love you 💖",
+"Day 41: Day 41 ajk.. Counting days till I see you 😘. Miss you 💕",
+"Day 42: Day 42 ajk.. You’re always in my thoughts 😍. Love you 💖",
+"Day 43: Day 43 ajk.. Miss your voice 😘. Thinking of you 💕",
+"Day 44: Day 44 ajk.. Hope funny moments make you smile 😍. Love you 💖",
+"Day 45: Day 45 ajk.. You’re my sunshine 😘. Miss you 💕",
+"Day 46: Good morning my jaan 🌞.. Day 46 ajk. Ami ekhono tmr smile bhabte bhabte din start korlam 😍. Ami chai tmi lonely feel koro na. Cat tap korio jodi miss koro amake 😺💖. Always yours, EMON 🥰.",
+"Day 47: Hey my love 😘.. Day 47 ajk. Ajker din hectic chilo, but amar mon shudhu tmr shathe chilo 😚. Ami tmk onk miss kortesi 💔. Tap the cat for me 😺💘.",
+"Day 48: Evening my jaan 🌙.. Day 48 ajk. Ami ajk tmr voice mone korte korte raat sesh kortesi 😅. Ami chai tmi happy r safe thakio 💖. Amar valobasha tmr jnno infinite 😍.",
+"Day 49: Hi beautiful 💕.. Day 49 ajk. Ami ekhono tmr kotha bhabi 😭. Ami chai tmi always smile korio. Cat te tap korio jodi amar kotha mone poray 😺💖.",
+"Day 50: Morning my love 🌸.. Day 50 ajk. Ami shudhu tmr smile bhabte bhabte din start korlam 😍. Ami chai tmi lonely feel koro na. Always thinking of you, EMON 🥰.",
+"Day 51: Hey jaan 😘.. Day 51 ajk. Ami ajk school/clg theke free, but amar mon shudhu tmr kotha bhabi 😭. Amar valobasha tmr jnno limitless 💖.",
+"Day 52: Good evening my jaan 🌙.. Day 52 ajk. Ami ajker din ta hectic chilo, but amar mon shudhu tmr smile er upor chilo 😅. Cat te tap korio jodi miss koro 😺💘.",
+"Day 53: Morning my sunshine 🌞.. Day 53 ajk. Ami chai tmi always happy r safe thakio 😘. Ami ekhono tmr kotha bhabi r smile mone korte korte hasi kori 😍.",
+"Day 54: Hi my love 😘.. Day 54 ajk. Ami tmk onk miss kortesi 💔. Amar shob mon er kotha website e rakhlam 🥰. Tap the cat if you miss me 😺💖.",
+"Day 55: Evening my jaan 🌙.. Day 55 ajk. Ami ajk tmr smile er chhobi mone rekhe raat sesh korlam 😅. Ami chai tmi lonely feel koro na 💖.",
+"Day 56: Good morning my love 🌸.. Day 56 ajk. Ami ekhono tmr sathe kotha bolte chai 😚. Ami chai tmi always smile r happy thakio 😍. Cat tap korio jodi amar kotha mone poray 😺💖.",
+"Day 57: Hey jaan 💕.. Day 57 ajk. Ami ajk tmr voice mone korte korte din sesh korlam 😅. Amar valobasha tmr jnno infinite 😘. Always yours, EMON 🥰💖.",
+"Day 58: Day 58 ajk.. I’m back! Missed you so much 😍💖"
+];
+
+const today = new Date();
+let diffDays = Math.floor((today - startDate)/(1000*60*60*24));
+if(diffDays < 0) diffDays = 0;
+if(diffDays >= totalDays) diffDays = totalDays-1;
+
+const container = document.getElementById("days");
+const messageBox = document.getElementById("message");
+const info = document.getElementById("info");
+const progress = document.getElementById("progress");
+
+info.innerText = `Day ${diffDays} 💖 (I’m still with you)`;
+progress.innerText = `Opened: ${diffDays+1} / ${totalDays} days`;
+
+for (let i = 0; i < totalDays; i++) {
+  const btn = document.createElement("button");
+  btn.innerText = `Day ${i}`;
+
+  if (i <= diffDays) {
+    btn.onclick = () => {
+      messageBox.style.display = "block";
+      messageBox.innerText = messages[i];
+      spawnHearts();
+    };
+  } else {
+    btn.classList.add("locked");
+  }
+  container.appendChild(btn);
+}
+
+function toggleTheme(){
+  document.body.classList.toggle("dark");
+}
+
+function petTalk(){
+  const texts = ["He told me to check on you 🐾","Don’t be sad okay? 💖","Drink water 😤💧","He misses you… a lot 🥺","Smile for me 🙂","Purrr… you’re loved 💕","Take a deep breath 😌","Meow! Someone’s thinking of you 😻","Stay safe, okay? 🫂","Sending you hugs 🤗","Don’t forget to eat 🍓","Miss him yet? 😽","Look at the sky 🌸… he’s thinking of you","Tap me again for love 💖","Purrr… I’m your little reminder 😺","Keep smiling, beautiful 🙂","Meow! Someone cares a lot 🥰","Feeling lonely? I’m here 😽","Drink tea or coffee ☕… he said so 😌","Tap me and send a kiss 😘","Snuggle with me 🐾","He’s proud of you 💕","Remember… you’re special 💖","Take a break if you need 🌸","Meow… you make him smile 😻","Don’t worry too much 😌","Tap me for a secret message 🐱","Your smile = his happiness 🙂","Purrr… lots of love 💖","Think of him and smile 😘","He’s always in your heart 🥺","Meow meow 😺… time for some fun!","Stay positive, lovely 🌸","Tap for a hug 🤗","Drink water again 💧","He believes in you 💖","Purrr… I’m watching over you 😽","Don’t forget to rest 😌","Meow! You’re amazing 🥰","Smile… he loves it 🙂","Take care of yourself 🌸","Tap me… I have a surprise 😺","Missing him? Purrr… 🐾","He sent me to say hi 😽","Keep shining, cutie ✨","Meow… big hugs for you 🤗","Remember… he adores you 💖","Tap me 😺… he’s thinking of you 💖","Purrr… time for a smile 🙂","Meow! You’re his favorite 😻","Drink water 💧… he told me so 😌","Hug me virtually 🤗","He sent me a secret message 🐾","Smile… it makes him happy 😘","Meeow 😽… he misses you a lot 🥺","Tap for love 💕","Purrr… I’m your little helper 😺","Don’t be sad 😢… he’s here in spirit 💖","Look at the sky 🌸… he’s watching too","Snuggle with me 🐱","Meeow 😻… big hugs coming your way 🤗","Tap me… I have a kiss 😘","Stay safe and happy 🙂","Purrr… he adores your smile 💖","Drink some tea ☕… he said so 😌","Meeow 😺… thinking of you always 🥰","Tap me if you need a hug 🤗","Smile… you’re amazing 😘","Purrr… love from him 💖","Meow meow 😻… he’s proud of you","Tap for a surprise 😺","Meeow 😽… he can’t stop thinking of you 🥺","Stay positive 🌸… he believes in you 💕","Purrr… I brought you happiness 😺","Drink water 😤… don’t forget! 💧","Meeow! Big smile for him 🙂","Tap me again 😻… I have love 💖","Hug time 🐾… he said so 🤗","Purrr… you’re his sunshine 😘","Meow 😺… missing you like crazy 🥰","Tap for a secret 😻… it’s from him 💕","Meeow 😽… feeling lonely? I’m here","Smile… he loves it 🙂","Purrr… sending kisses 😘","Tap me 😺… he’s proud of you 💖","Drink water 💧… and think of him 😌","Meeow 😻… you’re amazing 🥰","Tap for hugs 🤗… he wants you happy","Purrr… he misses your smile 😘","Meow 😽… big love from him 💕","Tap me… I have something cute 🐾","Smile… he’s always with you 🙂","Purrr… love messages incoming 😺","Meeow 😻… thinking of you nonstop 🥺","Drink tea ☕… he cares 😌","Tap for kisses 😘… from him 💖","Meeow 😺… you make him happy 😍","Purrr… hug incoming 🤗","Tap me 😻… he adores you 💕","Meow 😽… never forget that 🥰"];
+  messageBox.style.display = "block";
+  messageBox.innerText = texts[Math.floor(Math.random()*texts.length)];
+  spawnHearts();
+}
+
+function spawnHearts(){
+  for(let i=0;i<6;i++){
+    const h=document.createElement("div");
+    h.className="heart";
+    h.innerText="💖";
+    h.style.left=Math.random()*100+"vw";
+    h.style.bottom="0px";
+    document.body.appendChild(h);
+    setTimeout(()=>h.remove(),3000);
+  }
+}
+</script>
+
+</body>
+</html>
